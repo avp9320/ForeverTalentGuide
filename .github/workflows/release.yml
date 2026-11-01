@@ -1,0 +1,37 @@
+name: Package addon release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build addon zip
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/ForeverTalentGuide
+          cp ForeverTalentGuide.toc dist/ForeverTalentGuide/
+          cp ForeverTalentGuide_Camelot.toc dist/ForeverTalentGuide/
+          cp Builds.lua dist/ForeverTalentGuide/
+          cp Core.lua dist/ForeverTalentGuide/
+          cp UI.lua dist/ForeverTalentGuide/
+          cp README.md dist/ForeverTalentGuide/
+          cp CHANGELOG.md dist/ForeverTalentGuide/
+          cd dist
+          zip -r "../ForeverTalentGuide-${GITHUB_REF_NAME}.zip" ForeverTalentGuide
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ForeverTalentGuide-${{ github.ref_name }}.zip
+          generate_release_notes: true
