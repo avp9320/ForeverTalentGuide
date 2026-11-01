@@ -36,13 +36,7 @@ jobs:
           set -euo pipefail
           rm -rf dist
           mkdir -p dist/ForeverTalentGuide
-          cp ForeverTalentGuide.toc dist/ForeverTalentGuide/
-          cp ForeverTalentGuide_Camelot.toc dist/ForeverTalentGuide/
-          cp Builds.lua dist/ForeverTalentGuide/
-          cp Core.lua dist/ForeverTalentGuide/
-          cp UI.lua dist/ForeverTalentGuide/
-          cp README.md dist/ForeverTalentGuide/
-          cp CHANGELOG.md dist/ForeverTalentGuide/
+          cp *.toc *.lua README.md CHANGELOG.md dist/ForeverTalentGuide/
           cd dist
           zip -r "../${{ steps.version.outputs.asset }}" ForeverTalentGuide
 
