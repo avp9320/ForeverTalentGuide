@@ -1,9 +1,10 @@
-name: Package addon release
+name: Package Forever addon release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -15,10 +16,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build addon zip
+      - name: Read addon version
+        id: version
         shell: bash
         run: |
           set -euo pipefail
+          VERSION=$(awk -F': ' '/^## Version:/ {print $2; exit}' ForeverTalentGuide.toc | tr -d '\r')
+          if [ -z "$VERSION" ]; then
+            echo "Could not read ## Version from ForeverTalentGuide.toc" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "asset=ForeverTalentGuide-$VERSION-forever.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Build WowUp-compatible Forever zip
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist
           mkdir -p dist/ForeverTalentGuide
           cp ForeverTalentGuide.toc dist/ForeverTalentGuide/
           cp ForeverTalentGuide_Camelot.toc dist/ForeverTalentGuide/
@@ -28,10 +44,18 @@ jobs:
           cp README.md dist/ForeverTalentGuide/
           cp CHANGELOG.md dist/ForeverTalentGuide/
           cd dist
-          zip -r "../ForeverTalentGuide-${GITHUB_REF_NAME}.zip" ForeverTalentGuide
+          zip -r "../${{ steps.version.outputs.asset }}" ForeverTalentGuide
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: ForeverTalentGuide-${{ github.ref_name }}.zip
-          generate_release_notes: true
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Forever Talent Guide ${{ steps.version.outputs.version }}
+          body: |
+            WoW: Forever release for Forever Talent Guide.
+
+            Install with WowUp using:
+            https://github.com/avp9320/ForeverTalentGuide
+          files: ${{ steps.version.outputs.asset }}
+          fail_on_unmatched_files: true
