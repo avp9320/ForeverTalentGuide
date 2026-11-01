@@ -1,0 +1,22 @@
+{
+  "editorial_source": "Icy Veins",
+  "checked": "2026-11-01",
+  "cadence": "Tuesday",
+  "profiles": {
+    "warrior_leveling": {
+      "url": "https://www.icy-veins.com/wow-forever/fury-warrior-melee-dps-pve-guide",
+      "source_last_updated": "2026-10-27",
+      "coverage": "10-30"
+    },
+    "warrior_dps_60": {
+      "url": "https://www.icy-veins.com/wow-forever/fury-warrior-melee-dps-pve-spec-builds-talents",
+      "source_last_updated": "2026-10-31",
+      "split": "17/34/0"
+    },
+    "warrior_tank_60": {
+      "url": "https://www.icy-veins.com/wow-forever/protection-warrior-tank-pve-spec-builds-talents",
+      "source_last_updated": "2026-10-31",
+      "split": "0/20/31"
+    }
+  }
+}
