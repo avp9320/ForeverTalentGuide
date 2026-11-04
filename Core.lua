@@ -171,6 +171,47 @@ function FTG:RefreshTalentCache()
     return true
 end
 
+-- Check actual unspent talent currency before displaying a level-up popup.
+-- Unlike the normal level-10 rule, Forever's Legacy 'Talented' perk can
+-- award points as early as level 5. Do not hard-code level 10 as the gate.
+-- C_Traits.GetTreeCurrencyInfo().quantity is the unspent amount (spent is
+-- a separate field); sum all tree currencies defensively.
+function FTG:GetUnspentTalentPoints()
+    if not (C_Traits and type(C_Traits.GetTreeCurrencyInfo) == "function") then
+        return nil, "currency-api-missing"
+    end
+    local configID, treeID = self.runtime.configID, self.runtime.treeID
+    if not configID or not treeID then
+        return nil, "talent-tree-unavailable"
+    end
+    local ok, currencies = pcall(C_Traits.GetTreeCurrencyInfo, configID, treeID)
+    if not ok or type(currencies) ~= "table" then
+        return nil, "currency-data-unavailable"
+    end
+    local count, found = 0, false
+    for _, info in ipairs(currencies) do
+        if type(info) == "table" and type(info.quantity) == "number" then
+            count = count + math.max(0, info.quantity)
+            found = true
+        end
+    end
+    if not found then return nil, "currency-data-unavailable" end
+    return count, "trait-currency"
+end
+
+function FTG:HasUnspentTalentPoint()
+    local count, source = self:GetUnspentTalentPoints()
+    if count ~= nil then
+        return count > 0, source
+    end
+    -- Compatibility-only fallback: the classic baseline awards one point
+    -- per level starting at 10. Never pop before 10 without actual currency.
+    -- This does not claim to identify unspent points after level 10.
+    local level = tonumber(self.runtime.lastKnownPlayerLevel)
+        or (UnitLevel and UnitLevel("player")) or 0
+    return level >= 10, "level-estimate"
+end
+
 function FTG:GetTalentRecord(talentName)
     if not talentName then
         return nil
@@ -274,12 +315,13 @@ function FTG:RefreshGuide(reason)
     self:RefreshTalentCache()
     local step, state, _, record = self:GetNextStep()
     self.runtime.currentStep = step
+    self.runtime.hasUnspentPoint, self.runtime.pointStatus = self:HasUnspentTalentPoint()
 
     if self.UpdateGuideFrame then
         self:UpdateGuideFrame(step, state, record, reason)
     end
     if self.UpdateTalentGlow then
-        self:UpdateTalentGlow(step)
+        self:UpdateTalentGlow(self.runtime.hasUnspentPoint and step or nil)
     end
 end
 
@@ -371,9 +413,11 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
         local newLevel = ...
         FTG.runtime.lastKnownPlayerLevel = newLevel
         FTG.db.dismissedUntilNextPoint = false
-        C_Timer.After(0.25, function()
+        C_Timer.After(0.35, function()
+            if not FTG.db or not FTG.db.enabled then return end
             FTG:RefreshGuide("level")
-            if FTG.db.showLevelPopup and FTG.ShowGuide then
+            if FTG.db.showLevelPopup and FTG.runtime.hasUnspentPoint
+                and FTG.ShowGuide then
                 FTG:ShowGuide(true)
             end
         end)
@@ -384,6 +428,8 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
         or event == "TRAIT_NODE_CHANGED"
         or event == "PLAYER_ENTERING_WORLD"
         or event == "PLAYER_SPECIALIZATION_CHANGED"
+        or event == "TRAIT_TREE_CURRENCY_INFO_UPDATED"
+        or event == "CHARACTER_POINTS_CHANGED"
     then
         C_Timer.After(0.10, function()
             FTG.db.dismissedUntilNextPoint = false
@@ -398,3 +444,5 @@ safeRegisterEvent(eventFrame, "PLAYER_LEVEL_UP")
 safeRegisterEvent(eventFrame, "TRAIT_CONFIG_UPDATED")
 safeRegisterEvent(eventFrame, "TRAIT_NODE_CHANGED")
 safeRegisterEvent(eventFrame, "PLAYER_SPECIALIZATION_CHANGED")
+safeRegisterEvent(eventFrame, "TRAIT_TREE_CURRENCY_INFO_UPDATED")
+safeRegisterEvent(eventFrame, "CHARACTER_POINTS_CHANGED")

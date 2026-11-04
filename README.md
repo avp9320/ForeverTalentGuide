@@ -6,7 +6,7 @@ A small **World of Warcraft: Forever** Warrior addon that answers one question:
 
 The addon shows a compact next-point popup and, when the Blizzard talent window is open, attempts to glow the recommended talent directly in the tree.
 
-## v0.1 scope
+## v0.1.3 scope
 
 - Warrior only.
 - Three selectable profiles:
@@ -14,6 +14,9 @@ The addon shows a compact next-point popup and, when the Blizzard talent window 
   - **Level 60 DPS - Fury**
   - **Level 60 Tank - Protection**
 - Icy Veins is the editorial source of truth.
+- Level-up popup only when the client reports an unspent class talent point, including early points from the Forever Talented Legacy perk.
+- If the unspent-point API is unavailable, conservatively suppress pre-level-10 popups and only estimate eligibility from level 10 onward.
+- Spending the last unspent point hides the automatic popup; manual `/ftg` still allows an upcoming-talent preview.
 - No chat spam during normal play.
 - No automatic talent purchasing.
 - Talent nodes are resolved from the live `C_Traits` tree by talent name instead of hard-coded node IDs.

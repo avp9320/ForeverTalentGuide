@@ -75,9 +75,29 @@ function FTG:UpdateGuideFrame(step,state,record,reason)
     local frame=createGuideFrame(); local build=self:GetSelectedBuild(); if not build then frame.build:SetText("Warrior only"); frame.nextTalent:SetText("No Warrior build loaded"); frame.note:SetText(""); return end
     frame.build:SetText(build.name.."  •  "..build.source)
     if state=="complete" then frame.nextLabel:SetText("BUILD STATUS"); frame.nextTalent:SetText("Build complete"); frame.note:SetText(build.split or ""); if reason=="talent" then C_Timer.After(1.5,function() if frame:IsShown() then frame:Hide() end end) end; return end
-    frame.nextLabel:SetText("NEXT POINT"); frame.nextTalent:SetText(self:GetStepDisplay(step,record))
-    if state=="unresolved" then frame.note:SetText("Talent not resolved in the current client yet; launch verification needed.") elseif build.key=="leveling" and build.maxLevelCovered and (UnitLevel("player") or 0)>=build.maxLevelCovered then frame.note:SetText("Icy Veins currently publishes this leveling route through level "..build.maxLevelCovered..".") elseif step and step.level then frame.note:SetText("Normal leveling point: level "..step.level) else frame.note:SetText(build.split or "") end
-    if reason=="level" or reason=="slash" or reason=="build" then frame:Show() elseif frame:IsShown() then frame:Show() end
+    local hasPoint = self.runtime and self.runtime.hasUnspentPoint
+    frame.nextLabel:SetText(hasPoint and "NEXT POINT" or "UPCOMING TALENT")
+    frame.nextTalent:SetText(self:GetStepDisplay(step,record))
+    if not hasPoint then
+        frame.note:SetText("No unspent talent point yet. Normal first point: level 10.")
+    elseif state=="unresolved" then
+        frame.note:SetText("Talent not resolved in the current client yet; verification needed.")
+    elseif build.key=="leveling" and build.maxLevelCovered and (UnitLevel("player") or 0)>=build.maxLevelCovered then
+        frame.note:SetText("Icy Veins currently covers leveling through level "..build.maxLevelCovered..".")
+    elseif step and step.level then
+        frame.note:SetText("Normal leveling point: level "..step.level)
+    else
+        frame.note:SetText(build.split or "")
+    end
+    -- Automatic popups must represent a point that the player can spend.
+    -- Slash/build opening remains a manual preview even without points.
+    if reason=="level" and not hasPoint then
+        frame:Hide()
+    elseif reason=="talent" and not hasPoint then
+        frame:Hide()
+    elseif reason=="level" or reason=="slash" or reason=="build" then
+        frame:Show()
+    end
 end
 function FTG:ShowGuide(force) local frame=createGuideFrame(); if force or not (self.db and self.db.dismissedUntilNextPoint) then frame:Show() end end
 function FTG:HideGuide() if guideFrame then guideFrame:Hide() end end
@@ -85,7 +105,8 @@ function FTG:ClearTalentGlow() if glowingButton and ActionButton_HideOverlayGlow
 local function getTalentFrame() if PlayerSpellsFrame and PlayerSpellsFrame.TalentsFrame then return PlayerSpellsFrame.TalentsFrame end; if ClassTalentFrame then return ClassTalentFrame.TalentsTab or ClassTalentFrame.TalentsFrame end; return nil end
 local function showFallbackBorder(button) if not glowBorder then glowBorder=CreateFrame("Frame",nil,UIParent,"BackdropTemplate"); glowBorder:SetFrameStrata("TOOLTIP"); if glowBorder.SetBackdrop then glowBorder:SetBackdrop({edgeFile="Interface\\Buttons\\UI-ActionButton-Border",edgeSize=24}); glowBorder:SetBackdropBorderColor(1,0.82,0,1) end end; glowBorder:SetParent(button); glowBorder:ClearAllPoints(); glowBorder:SetPoint("TOPLEFT",button,"TOPLEFT",-6,6); glowBorder:SetPoint("BOTTOMRIGHT",button,"BOTTOMRIGHT",6,-6); glowBorder:Show() end
 function FTG:UpdateTalentGlow(step)
-    self:ClearTalentGlow(); if not self.db or not self.db.showTalentGlow or not step then return end
+    self:ClearTalentGlow(); if not self.db or not self.db.showTalentGlow or not step
+        or not (self.runtime and self.runtime.hasUnspentPoint) then return end
     local record=self:GetTalentRecord(step.talent); if not record or not record.nodeID then return end
     local talentFrame=getTalentFrame(); if not talentFrame or not talentFrame.GetTalentButtonByNodeID then return end
     local ok,button=pcall(talentFrame.GetTalentButtonByNodeID,talentFrame,record.nodeID); if not ok or not button then return end
