@@ -105,14 +105,25 @@ function FTG:RefreshTalentCache()
     if not self:IsSupportedCharacter() then
         return false
     end
-    if not C_ClassTalents or not C_ClassTalents.GetActiveConfigID or not C_Traits then
-        return false
+    if not C_Traits then return false end
+
+    -- Forever uses the Camelot combat config. Retail's active talent config
+    -- accessor can return nil here, even when Classic-style talents exist.
+    local configID
+    if C_SpecializationInfo and C_SpecializationInfo.GetActiveSpecGroup
+        and C_SpecializationInfo.GetCombatConfigIDForSpecGroup then
+        local okGroup, group = pcall(C_SpecializationInfo.GetActiveSpecGroup)
+        if okGroup and group then
+            local okConfig, value = pcall(C_SpecializationInfo.GetCombatConfigIDForSpecGroup, group)
+            if okConfig then configID = value end
+        end
     end
 
-    local okConfig, configID = pcall(C_ClassTalents.GetActiveConfigID)
-    if not okConfig or not configID then
-        return false
+    if not configID and C_ClassTalents and C_ClassTalents.GetActiveConfigID then
+        local okConfig, value = pcall(C_ClassTalents.GetActiveConfigID)
+        if okConfig then configID = value end
     end
+    if not configID then return false end
 
     local okInfo, configInfo = pcall(C_Traits.GetConfigInfo, configID)
     if not okInfo or not configInfo or not configInfo.treeIDs or not configInfo.treeIDs[1] then
