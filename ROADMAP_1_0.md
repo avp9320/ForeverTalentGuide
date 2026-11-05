@@ -10,9 +10,9 @@ This is a release gate, not a claim of implementation. README claims and static 
 
 ## Evidence
 
-- Code review: pending
-- Automated/static tests: pending
-- Live WoW: Forever client verification: pending
+- Code review: 2026-11-05 — inspected talent event lifecycle; committed `8430d23` to preserve dismissed popups across routine trait refreshes and reopen only on a verified rise in unspent currency. No live behavior claimed.
+- Automated/static tests: pending (no WoW client simulation or Lua runtime execution performed for this change).
+- Live WoW: Forever client verification: pending — specifically dismiss popup, spend a point, open talents, change zones, and earn a new Legacy/level point to verify it reopens only for the new point.
 - Release ZIP and WoWUp installation: pending
 
 ## Status
