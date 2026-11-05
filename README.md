@@ -6,7 +6,7 @@ A small **World of Warcraft: Forever** Warrior addon that answers one question:
 
 The addon shows a compact next-point popup and, when the Blizzard talent window is open, attempts to glow the recommended talent directly in the tree.
 
-## v0.1.4 scope
+## v0.1.5 scope
 
 - Warrior only.
 - Five selectable Warrior profiles:
@@ -35,7 +35,7 @@ The addon shows a compact next-point popup and, when the Blizzard talent window 
 
 ## Guide fidelity and coverage
 
-The Fury leveling profile in this initial release still stops at level 30 pending its next guide-data update. The separate Arms leveling profile extends to level 60, built from the Icy Veins Arms leveling page updated November 3, 2026. The site describes the major level-specific milestones but does not expose every intermediate point as static text. Where we inferred a rank order between explicit milestones, the addon marks it as approximate. These inferred steps are **not** a verbatim Icy Veins export.
+Both Fury and Arms leveling profiles now provide levels 10–60. Fury uses Icy Veins' November 3 milestones for levels 10–40 and 50–52; gaps in the static guide are filled with clearly flagged approximate recommendations rather than leaving the addon silent. The Arms leveling profile uses the Icy Veins Arms page updated November 3, 2026. The site describes the major level-specific milestones but does not expose every intermediate point as static text. Where we inferred a rank order between explicit milestones, the addon marks it as approximate. These inferred steps are **not** a verbatim Icy Veins export.
 
 The Arms level-60 PvE profile uses Icy Veins' exact **32/17/2** Mortal Strike allocation. Its point-spending order is arranged for a level-60 respec, rather than asserted as Icy Veins' leveling progression.
 
@@ -44,7 +44,7 @@ The Arms level-60 PvE profile uses Icy Veins' exact **32/17/2** Mortal Strike al
 Build recommendations come from Icy Veins' WoW Forever Warrior guides:
 
 - Fury leveling:
-  https://www.icy-veins.com/wow-forever/fury-warrior-melee-dps-pve-guide
+  https://www.icy-veins.com/wow-forever/fury-warrior-leveling
 - Fury level-60 PvE talents:
   https://www.icy-veins.com/wow-forever/fury-warrior-melee-dps-pve-spec-builds-talents
 - Arms leveling:
