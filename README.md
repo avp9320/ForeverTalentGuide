@@ -6,7 +6,7 @@ A small **World of Warcraft: Forever** Warrior addon that answers one question:
 
 The addon shows a slim next-point strip inside the top header of Blizzard's Talent window and outlines the recommended talent with a thin gold border, without replacing its icon.
 
-## v0.1.8 scope
+## v0.1.9 scope
 
 - Warrior only.
 - Five selectable Warrior profiles:
@@ -101,3 +101,7 @@ The old floating popup is removed. Open Talents (default N) to see a compact gui
 ## Compact header layout (v0.1.8)
 
 The guide is a single 37-unit-high line in the otherwise empty band immediately below the Primary/Secondary tabs. It anchors to both sides of the talent canvas with a generous right inset so it does not obscure the Unspent Talents counter. The build/source, upcoming talent rank, and Build selector are visible inline. Hovering over the strip shows the former secondary note (estimated order, level milestone, or missing talent). This removes the previous overlap with the tabs and preserves normal Blizzard controls.
+
+## Top-row placement (v0.1.9)
+
+The one-line guide now sits **to the right of the Primary/Secondary tabs and to the left of the Search box**, on the same horizontal row. This is the empty top bar, not the row below the tabs. The guide is 29 UI units high, with hover-only detailed text. This placement was based on a player screenshot and awaits an in-game positioning check at other UI scales.

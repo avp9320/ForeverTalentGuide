@@ -48,7 +48,7 @@ local function makeGuide()
         -- One horizontal row: build/source | recommended rank | Build.
         guide.title = guide:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
         guide.title:SetPoint("LEFT",guide,"LEFT",12,0)
-        guide.title:SetWidth(204)
+        guide.title:SetWidth(176)
         guide.title:SetJustifyH("LEFT")
         guide.title:SetMaxLines(1)
 
@@ -74,12 +74,13 @@ local function makeGuide()
         guide:Hide()
     end
     guide:ClearAllPoints()
-    -- The original -4 TOP offset overlapped Primary/Secondary tabs.
-    -- The unobstructed band is immediately below them, before the tree starts.
-    -- The right inset leaves Blizzard's Unspent Talents counter untouched.
-    guide:SetPoint("TOPLEFT",canvas,"TOPLEFT",24,-68)
-    guide:SetPoint("TOPRIGHT",canvas,"TOPRIGHT",-245,-68)
-    guide:SetHeight(37)
+    -- Same horizontal row as the Primary/Secondary tabs and Search field.
+    -- Left offset clears the two tabs; right inset ends before Search.
+    -- Do not place this below the tabs, where it steals talent-tree space.
+    -- Insets are in WoW UI units; the guide follows the talent canvas scale.
+    guide:SetPoint("TOPLEFT",canvas,"TOPLEFT",395,-11)
+    guide:SetPoint("TOPRIGHT",canvas,"TOPRIGHT",-250,-11)
+    guide:SetHeight(29)
     return guide
 end
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9 - 2026-11-05
+
+- Relocated the compact guide into the upper row between the Primary/Secondary tabs and Search field, matching the player's marked empty space.
+- Reduced the guide height to 29 UI units and narrowed the build-source label so the next recommendation has more room.
+- Preserved the Build selector, tooltip, and gold talent outline.
+
 ## 0.1.8 - 2026-11-05
 
 - Moved the attached guide below the talent tabs and above the trees, away from the Unspent Talents counter.
