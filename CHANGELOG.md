@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7 - 2026-11-05
+
+- Anchored the guide to the Talent window's empty top band, no floating popup.
+- Added an attached five-build selector that only appears when requested.
+- Replaced the broken action-button glow (black/yellow Improved Rend texture) with an unobtrusive golden outline.
+- Synced both TOC manifest versions for WowUp.
+
 ## 0.1.4 - 2026-11-04
 
 - Added separate Arms leveling (10-60) and level-60 Arms DPS (32/17/2) selections.

@@ -4,9 +4,9 @@ A small **World of Warcraft: Forever** Warrior addon that answers one question:
 
 > I leveled up. Where does my talent point go?
 
-The addon shows a compact next-point popup and, when the Blizzard talent window is open, attempts to glow the recommended talent directly in the tree.
+The addon shows a slim next-point strip inside the top header of Blizzard's Talent window and outlines the recommended talent with a thin gold border, without replacing its icon.
 
-## v0.1.5 scope
+## v0.1.7 scope
 
 - Warrior only.
 - Five selectable Warrior profiles:
@@ -16,9 +16,9 @@ The addon shows a compact next-point popup and, when the Blizzard talent window 
   - **Level 60 DPS - Arms** (Icy Veins 32/17/2 Mortal Strike)
   - **Level 60 Tank - Protection**
 - Icy Veins is the editorial source of truth.
-- Level-up popup only when the client reports an unspent class talent point, including early points from the Forever Talented Legacy perk.
+- Next-point guidance stays inside the Talent window, including early Legacy Talented points.
 - If the unspent-point API is unavailable, conservatively suppress pre-level-10 popups and only estimate eligibility from level 10 onward.
-- Spending the last unspent point hides the automatic popup; manual `/ftg` still allows an upcoming-talent preview.
+- The guide is hidden when Talents is closed; opening Talents always displays the current or upcoming rank.
 - No chat spam during normal play.
 - No automatic talent purchasing.
 - Talent nodes are resolved from the live `C_Traits` tree by talent name instead of hard-coded node IDs.
@@ -93,3 +93,7 @@ Check:
 ## Design rule
 
 This addon is a guide, not an automation bot. It tells you where the point goes and highlights it. You still click the talent yourself.
+
+## Talent window integration (v0.1.7)
+
+The old floating popup is removed. Open Talents (default N) to see a compact guide in its upper header band; the guide hides with the window. The Build button expands a temporary, attached five-profile selector. The next talent is outlined in gold without using the action-button overlay atlas that rendered a black/yellow square on Improved Rend. No chat spam or automatic talent spending.

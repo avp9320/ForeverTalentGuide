@@ -1,121 +1,244 @@
 local addonName, FTG = ...
+-- Forever Talent Guide: intentionally part of the open Talent window.
+local guide, menu, border, hooked, registered
 
-local guideFrame
-local settingsFrame
-local glowingButton
-local glowBorder
-
-local function createGuideFrame()
-    if guideFrame then return guideFrame end
-    local frame = CreateFrame("Frame", "ForeverTalentGuideFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(330, 118)
-    frame:SetPoint("CENTER", UIParent, "CENTER", 0, 180)
-    frame:SetFrameStrata("DIALOG")
-    frame:SetClampedToScreen(true)
-    frame:EnableMouse(true)
-    frame:SetMovable(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
-    frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
-    if frame.SetBackdrop then frame:SetBackdrop({bgFile="Interface\\DialogFrame\\UI-DialogBox-Background-Dark",edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",tile=true,tileSize=32,edgeSize=24,insets={left=7,right=7,top=7,bottom=7}}) end
-    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    frame.title:SetPoint("TOPLEFT", 18, -16)
-    frame.title:SetText("Forever Talent Guide")
-    frame.build = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    frame.build:SetPoint("TOPLEFT", frame.title, "BOTTOMLEFT", 0, -6)
-    frame.build:SetTextColor(0.75,0.75,0.75)
-    frame.nextLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    frame.nextLabel:SetPoint("TOPLEFT", frame.build, "BOTTOMLEFT", 0, -12)
-    frame.nextLabel:SetText("NEXT POINT")
-    frame.nextTalent = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    frame.nextTalent:SetPoint("TOPLEFT", frame.nextLabel, "BOTTOMLEFT", 0, -2)
-    frame.nextTalent:SetPoint("RIGHT", frame, "RIGHT", -18, 0)
-    frame.nextTalent:SetJustifyH("LEFT")
-    frame.note = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    frame.note:SetPoint("TOPLEFT", frame.nextTalent, "BOTTOMLEFT", 0, -4)
-    frame.note:SetPoint("RIGHT", frame, "RIGHT", -18, 0)
-    frame.note:SetJustifyH("LEFT")
-    frame.close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    frame.close:SetPoint("TOPRIGHT", -4, -4)
-    frame.close:SetScript("OnClick", function() frame:Hide(); if FTG.db then FTG.db.dismissedUntilNextPoint = true end end)
-    frame.settings = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    frame.settings:SetSize(66,20)
-    frame.settings:SetPoint("BOTTOMRIGHT", -14, 12)
-    frame.settings:SetText("Build")
-    frame.settings:SetScript("OnClick", function() FTG:ToggleSettings() end)
-    frame:Hide(); guideFrame = frame; return frame
+local function getCanvas()
+    if PlayerSpellsFrame and PlayerSpellsFrame.TalentsFrame then
+        return PlayerSpellsFrame.TalentsFrame
+    end
+    if ClassTalentFrame then
+        return ClassTalentFrame.TalentsFrame or ClassTalentFrame.TalentsTab
+    end
 end
 
-local function createSettingsFrame()
-    if settingsFrame then return settingsFrame end
-    local frame = CreateFrame("Frame", "ForeverTalentGuideSettings", UIParent, "BackdropTemplate")
-    frame:SetSize(370,310); frame:SetPoint("CENTER"); frame:SetFrameStrata("DIALOG"); frame:SetClampedToScreen(true); frame:EnableMouse(true); frame:SetMovable(true)
-    frame:RegisterForDrag("LeftButton"); frame:SetScript("OnDragStart", function(self) self:StartMoving() end); frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
-    if frame.SetBackdrop then frame:SetBackdrop({bgFile="Interface\\DialogFrame\\UI-DialogBox-Background-Dark",edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",tile=true,tileSize=32,edgeSize=24,insets={left=7,right=7,top=7,bottom=7}}) end
-    frame.title = frame:CreateFontString(nil,"OVERLAY","GameFontNormalLarge"); frame.title:SetPoint("TOPLEFT",18,-18); frame.title:SetText("Forever Talent Guide")
-    frame.subtitle = frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); frame.subtitle:SetPoint("TOPLEFT",frame.title,"BOTTOMLEFT",0,-8); frame.subtitle:SetText("Warrior builds • Icy Veins")
-    frame.close = CreateFrame("Button",nil,frame,"UIPanelCloseButton"); frame.close:SetPoint("TOPRIGHT",-4,-4)
-    local options={{key="leveling",label="Fury Leveling",y=-70},{key="arms_leveling",label="Arms Leveling",y=-110},{key="dps",label="Fury DPS 60",y=-150},{key="arms_dps",label="Arms DPS 60",y=-190},{key="tank",label="Protection Tank 60",y=-230}}
-    frame.buttons={}
-    for _,option in ipairs(options) do local button=CreateFrame("Button",nil,frame,"UIPanelButtonTemplate"); button:SetSize(150,28); button:SetPoint("TOPLEFT",20,option.y); button:SetText(option.label); button:SetScript("OnClick",function() FTG:SetSelectedBuild(option.key); FTG:ShowGuide(true); FTG:UpdateSettings() end); frame.buttons[option.key]=button end
-    frame.info=frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); frame.info:SetPoint("TOPLEFT",190,-72); frame.info:SetPoint("RIGHT",-18,0); frame.info:SetJustifyH("LEFT"); frame.info:SetJustifyV("TOP")
-    frame.source=frame:CreateFontString(nil,"OVERLAY","GameFontDisableSmall"); frame.source:SetPoint("BOTTOMLEFT",20,20); frame.source:SetPoint("RIGHT",-20,0); frame.source:SetJustifyH("LEFT")
-    frame:Hide(); settingsFrame=frame; return frame
+local function isOpen()
+    local f = getCanvas()
+    return f and f.IsVisible and f:IsVisible()
 end
 
-function FTG:InitializeUI() createGuideFrame(); createSettingsFrame(); self:UpdateSettings(); self:HookTalentUI() end
-function FTG:ToggleSettings() local frame=createSettingsFrame(); if frame:IsShown() then frame:Hide() else self:UpdateSettings(); frame:Show() end end
-function FTG:UpdateSettings()
-    local frame=createSettingsFrame(); local build=self:GetSelectedBuild(); if not build then frame.info:SetText("Warrior only in v0.1."); return end
-    frame.info:SetText(build.name.."\n\nSplit: "..tostring(build.split or "—").."\nCoverage: "..tostring(build.coverage or "—").."\nSource updated: "..tostring(build.sourceLastUpdated or "—"))
-    frame.source:SetText("Source: "..tostring(build.source).."  •  /ftg source prints the guide URL")
-    for key,button in pairs(frame.buttons) do if key==build.key then button:Disable() else button:Enable() end end
+local function skin(f)
+    if not f.SetBackdrop then return end
+    f:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+        insets = {left=1, right=1, top=1, bottom=1},
+    })
+    f:SetBackdropColor(0.04,0.03,0.02,0.92)
+    f:SetBackdropBorderColor(0.70,0.53,0.13,1)
 end
-function FTG:UpdateGuideFrame(step,state,record,reason)
-    local frame=createGuideFrame(); local build=self:GetSelectedBuild(); if not build then frame.build:SetText("Warrior only"); frame.nextTalent:SetText("No Warrior build loaded"); frame.note:SetText(""); return end
-    frame.build:SetText(build.name.."  •  "..build.source)
-    if state=="complete" then frame.nextLabel:SetText("BUILD STATUS"); frame.nextTalent:SetText("Build complete"); frame.note:SetText(build.split or ""); if reason=="talent" then C_Timer.After(1.5,function() if frame:IsShown() then frame:Hide() end end) end; return end
-    local hasPoint = self.runtime and self.runtime.hasUnspentPoint
-    frame.nextLabel:SetText(hasPoint and "NEXT POINT" or "UPCOMING TALENT")
-    frame.nextTalent:SetText(self:GetStepDisplay(step,record))
-    if not hasPoint then
-        frame.note:SetText("No unspent talent point yet. Normal first point: level 10.")
-    elseif state=="unresolved" then
-        frame.note:SetText("Talent not resolved in the current client yet; verification needed.")
-    elseif build.maxLevelCovered and (UnitLevel("player") or 0)>=build.maxLevelCovered then
-        frame.note:SetText("Icy Veins currently covers leveling through level "..build.maxLevelCovered..".")
-    elseif step and step.inferred then
-        frame.note:SetText("Approximate point order from Icy Veins' build; verify in their guide.")
-    elseif step and step.level then
-        frame.note:SetText("Icy Veins leveling milestone: level "..step.level)
+
+local function makeGuide()
+    local canvas = getCanvas()
+    if not canvas then return end
+    if guide then
+        if guide:GetParent() ~= canvas then guide:SetParent(canvas) end
     else
-        frame.note:SetText(build.split or "")
+        guide = CreateFrame("Frame", "ForeverTalentGuideFrame", canvas, "BackdropTemplate")
+        guide:EnableMouse(true)
+        guide:SetFrameLevel(canvas:GetFrameLevel()+10)
+        skin(guide)
+        guide.title = guide:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+        guide.title:SetPoint("TOPLEFT",12,-6)
+        guide.title:SetPoint("RIGHT",-86,0)
+        guide.title:SetJustifyH("LEFT")
+        guide.next = guide:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
+        guide.next:SetPoint("TOPLEFT",12,-20)
+        guide.next:SetPoint("RIGHT",-86,0)
+        guide.next:SetJustifyH("LEFT")
+        guide.note = guide:CreateFontString(nil,"OVERLAY","GameFontDisableSmall")
+        guide.note:SetPoint("BOTTOMLEFT",12,5)
+        guide.note:SetPoint("RIGHT",-10,0)
+        guide.note:SetJustifyH("LEFT")
+        guide.choose = CreateFrame("Button",nil,guide,"UIPanelButtonTemplate")
+        guide.choose:SetSize(72,24)
+        guide.choose:SetPoint("TOPRIGHT",-8,-13)
+        guide.choose:SetText("Build")
+        guide.choose:SetScript("OnClick",function() FTG:ToggleSettings() end)
+        guide:Hide()
     end
-    -- Automatic popups must represent a point that the player can spend.
-    -- Slash/build opening remains a manual preview even without points.
-    if reason=="level" and not hasPoint then
-        frame:Hide()
-    elseif reason=="talent" and not hasPoint then
-        frame:Hide()
-    elseif reason=="level" or reason=="slash" or reason=="build" then
-        frame:Show()
+    guide:SetSize(math.max(310,math.min(570,(canvas:GetWidth() or 1200)-260)),52)
+    guide:ClearAllPoints()
+    -- Forever's empty header band sits above the three talent trees.
+    guide:SetPoint("TOP",canvas,"TOP",-65,-4)
+    return guide
+end
+
+local choices = {
+    {"leveling", "Fury Leveling"},
+    {"arms_leveling", "Arms Leveling"},
+    {"dps", "Fury DPS 60"},
+    {"arms_dps", "Arms DPS 60"},
+    {"tank", "Protection Tank 60"},
+}
+
+local function makeMenu()
+    local g = makeGuide()
+    if not g then return end
+    if menu then return menu end
+    menu = CreateFrame("Frame", "ForeverTalentGuideSelector", g, "BackdropTemplate")
+    menu:SetSize(245,198)
+    menu:SetFrameLevel(g:GetFrameLevel()+2)
+    menu:EnableMouse(true)
+    menu:SetPoint("TOPRIGHT",g,"BOTTOMRIGHT",0,-4)
+    skin(menu)
+    local heading = menu:CreateFontString(nil,"OVERLAY","GameFontNormal")
+    heading:SetPoint("TOPLEFT",12,-8)
+    heading:SetText("Choose Warrior build")
+    menu.buttons={}
+    for i, item in ipairs(choices) do
+        local key,name=unpack(item)
+        local b=CreateFrame("Button",nil,menu,"UIPanelButtonTemplate")
+        b:SetSize(214,27)
+        b:SetPoint("TOPLEFT",14,-30-(i-1)*31)
+        b:SetText(name)
+        b:SetScript("OnClick",function()
+            menu:Hide()
+            FTG:SetSelectedBuild(key)
+            FTG:UpdateSettings()
+            FTG:ShowGuide()
+        end)
+        menu.buttons[key]=b
+    end
+    menu:Hide()
+    return menu
+end
+
+function FTG:InitializeUI()
+    self:HookTalentUI()
+end
+
+function FTG:ToggleSettings()
+    if not isOpen() then return end
+    local m=makeMenu()
+    if not m then return end
+    if m:IsShown() then m:Hide()
+    else self:UpdateSettings(); m:Show() end
+end
+
+function FTG:UpdateSettings()
+    if not menu then return end
+    local build=self:GetSelectedBuild()
+    for key,button in pairs(menu.buttons) do
+        if build and key==build.key then button:Disable()
+        else button:Enable() end
     end
 end
-function FTG:ShowGuide(force) local frame=createGuideFrame(); if force or not (self.db and self.db.dismissedUntilNextPoint) then frame:Show() end end
-function FTG:HideGuide() if guideFrame then guideFrame:Hide() end end
-function FTG:ClearTalentGlow() if glowingButton and ActionButton_HideOverlayGlow then pcall(ActionButton_HideOverlayGlow,glowingButton) end; if glowBorder then glowBorder:Hide(); glowBorder:SetParent(UIParent); glowBorder:ClearAllPoints() end; glowingButton=nil end
-local function getTalentFrame() if PlayerSpellsFrame and PlayerSpellsFrame.TalentsFrame then return PlayerSpellsFrame.TalentsFrame end; if ClassTalentFrame then return ClassTalentFrame.TalentsTab or ClassTalentFrame.TalentsFrame end; return nil end
-local function showFallbackBorder(button) if not glowBorder then glowBorder=CreateFrame("Frame",nil,UIParent,"BackdropTemplate"); glowBorder:SetFrameStrata("TOOLTIP"); if glowBorder.SetBackdrop then glowBorder:SetBackdrop({edgeFile="Interface\\Buttons\\UI-ActionButton-Border",edgeSize=24}); glowBorder:SetBackdropBorderColor(1,0.82,0,1) end end; glowBorder:SetParent(button); glowBorder:ClearAllPoints(); glowBorder:SetPoint("TOPLEFT",button,"TOPLEFT",-6,6); glowBorder:SetPoint("BOTTOMRIGHT",button,"BOTTOMRIGHT",6,-6); glowBorder:Show() end
+
+function FTG:UpdateGuideFrame(step,state,record,reason)
+    if not (self.db and self.db.enabled and self:IsSupportedCharacter() and isOpen()) then
+        self:HideGuide()
+        return
+    end
+    local g=makeGuide()
+    local build=self:GetSelectedBuild()
+    if not (g and build) then return end
+    g.title:SetText(build.name.."  |  Icy Veins")
+    if state=="complete" then
+        g.next:SetText("Build complete")
+        g.note:SetText("No more guided talent points.")
+    elseif not step then
+        g.next:SetText("No recommendation available")
+        g.note:SetText("Check the selected Icy Veins build.")
+    else
+        local hasPoint=self.runtime and self.runtime.hasUnspentPoint
+        g.next:SetText((hasPoint and "NEXT: " or "UP NEXT: ")..self:GetStepDisplay(step,record))
+        if state=="unresolved" then
+            g.note:SetText("Talent not resolved; use /ftg status for details.")
+        elseif step.inferred then
+            g.note:SetText("Approximate order; confirm against Icy Veins.")
+        elseif step.level then
+            g.note:SetText("Suggested at level "..tostring(step.level))
+        else
+            g.note:SetText(build.split or "")
+        end
+    end
+    g:Show()
+    self:UpdateSettings()
+end
+
+-- Leveling no longer spawns an independent popup. The strip appears inside
+-- the talent window on every open, including after receiving a new point.
+function FTG:ShowGuide()
+    if not isOpen() then return end
+    local g=makeGuide()
+    if g then g:Show() end
+end
+
+function FTG:HideGuide()
+    if menu then menu:Hide() end
+    if guide then guide:Hide() end
+end
+
+function FTG:ClearTalentGlow()
+    if border then border:Hide(); border:ClearAllPoints() end
+end
+
+local function makeBorder(canvas)
+    if border then
+        if border:GetParent()~=canvas then border:SetParent(canvas) end
+        return border
+    end
+    border=CreateFrame("Frame",nil,canvas)
+    border:EnableMouse(false)
+    local function line(points,width,height)
+        local t=border:CreateTexture(nil,"OVERLAY")
+        t:SetColorTexture(1,0.76,0.12,0.98)
+        for _,p in ipairs(points) do t:SetPoint(unpack(p)) end
+        if width then t:SetWidth(width) end
+        if height then t:SetHeight(height) end
+    end
+    line({{"TOPLEFT",border,"TOPLEFT"},{"TOPRIGHT",border,"TOPRIGHT"}},nil,3)
+    line({{"BOTTOMLEFT",border,"BOTTOMLEFT"},{"BOTTOMRIGHT",border,"BOTTOMRIGHT"}},nil,3)
+    line({{"TOPLEFT",border,"TOPLEFT"},{"BOTTOMLEFT",border,"BOTTOMLEFT"}},3,nil)
+    line({{"TOPRIGHT",border,"TOPRIGHT"},{"BOTTOMRIGHT",border,"BOTTOMRIGHT"}},3,nil)
+    border:Hide()
+    return border
+end
+
 function FTG:UpdateTalentGlow(step)
-    self:ClearTalentGlow(); if not self.db or not self.db.showTalentGlow or not step
-        or not (self.runtime and self.runtime.hasUnspentPoint) then return end
-    local record=self:GetTalentRecord(step.talent); if not record or not record.nodeID then return end
-    local talentFrame=getTalentFrame(); if not talentFrame or not talentFrame.GetTalentButtonByNodeID then return end
-    local ok,button=pcall(talentFrame.GetTalentButtonByNodeID,talentFrame,record.nodeID); if not ok or not button then return end
-    glowingButton=button; if ActionButton_ShowOverlayGlow then local glowOK=pcall(ActionButton_ShowOverlayGlow,button); if glowOK then return end end; showFallbackBorder(button)
+    self:ClearTalentGlow()
+    if not (self.db and self.db.showTalentGlow and step and isOpen()) then return end
+    if not (self.runtime and self.runtime.hasUnspentPoint) then return end
+    local rec=self:GetTalentRecord(step.talent)
+    local canvas=getCanvas()
+    if not (rec and rec.nodeID and canvas and type(canvas.GetTalentButtonByNodeID)=="function") then return end
+    local ok,button=pcall(canvas.GetTalentButtonByNodeID,canvas,rec.nodeID)
+    if not (ok and button) then return end
+    local edge=makeBorder(canvas)
+    edge:SetFrameLevel(math.max(canvas:GetFrameLevel()+3,button:GetFrameLevel()+3))
+    edge:SetSize(math.max(30,button:GetWidth()+8),math.max(30,button:GetHeight()+8))
+    edge:ClearAllPoints()
+    edge:SetPoint("CENTER",button,"CENTER")
+    edge:Show()
 end
+
 function FTG:HookTalentUI()
-    if self.runtime.talentUIHooked then return end; self.runtime.talentUIHooked=true
-    if EventRegistry and EventRegistry.RegisterCallback then pcall(EventRegistry.RegisterCallback,EventRegistry,"TalentFrameBase.ButtonsUpdated",function() C_Timer.After(0,function() FTG:RefreshTalentCache(); local step=FTG:GetNextStep(); FTG:UpdateTalentGlow(step) end) end,self) end
-    local talentFrame=getTalentFrame(); if talentFrame and talentFrame.HookScript then talentFrame:HookScript("OnShow",function() C_Timer.After(0.1,function() FTG:RefreshTalentCache(); local step=FTG:GetNextStep(); FTG:UpdateTalentGlow(step) end) end); talentFrame:HookScript("OnHide",function() FTG:ClearTalentGlow() end) end
+    local canvas=getCanvas()
+    if not canvas then return end
+    if hooked~=canvas then
+        hooked=canvas
+        if canvas.HookScript then
+            canvas:HookScript("OnShow",function()
+                C_Timer.After(0,function()
+                    if FTG.db and FTG.db.enabled then FTG:RefreshGuide("talent-open") end
+                end)
+            end)
+            canvas:HookScript("OnHide",function()
+                FTG:HideGuide()
+                FTG:ClearTalentGlow()
+            end)
+        end
+    end
+    if not registered and EventRegistry and EventRegistry.RegisterCallback then
+        registered=true
+        pcall(EventRegistry.RegisterCallback,EventRegistry,"TalentFrameBase.ButtonsUpdated",function()
+            if isOpen() and FTG.db and FTG.db.enabled then
+                C_Timer.After(0,function() FTG:RefreshGuide("talent-buttons-updated") end)
+            end
+        end,FTG)
+    end
+    if isOpen() and FTG.db and FTG.db.enabled then
+        FTG:RefreshGuide("talent-open")
+    end
 end
