@@ -1,6 +1,6 @@
 {
   "editorial_source": "Icy Veins",
-  "checked": "2026-11-01",
+  "checked": "2026-11-04",
   "cadence": "Tuesday",
   "profiles": {
     "warrior_leveling": {
@@ -17,6 +17,18 @@
       "url": "https://www.icy-veins.com/wow-forever/protection-warrior-tank-pve-spec-builds-talents",
       "source_last_updated": "2026-10-31",
       "split": "0/20/31"
+    },
+    "warrior_arms_leveling": {
+      "url": "https://www.icy-veins.com/wow-forever/arms-warrior-leveling",
+      "source_last_updated": "2026-11-03",
+      "coverage": "10-60",
+      "fidelity": "key level-specific milestones directly sourced; unspecified intermediate points inferred and marked"
+    },
+    "warrior_arms_dps_60": {
+      "url": "https://www.icy-veins.com/wow-forever/arms-warrior-melee-dps-pve-spec-builds-talents",
+      "source_last_updated": "2026-11-03",
+      "split": "32/17/2",
+      "fidelity": "exact final talent ranks; respec point order arranged by addon"
     }
   }
 }

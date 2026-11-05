@@ -12,8 +12,8 @@ FTG.Builds = FTG.Builds or {}
 -- Build data is deliberately separate from Core/UI so weekly guide updates can
 -- replace this file without rewriting the addon.
 
-local function step(tree, talent, rank, level)
-    return { tree = tree, talent = talent, rank = rank, level = level }
+local function step(tree, talent, rank, level, inferred)
+    return { tree = tree, talent = talent, rank = rank, level = level, inferred = inferred or false }
 end
 
 local function ranks(tree, talent, firstRank, lastRank, firstLevel)
@@ -88,7 +88,150 @@ append(tank60, ranks("Fury", "Lingering Rage", 1, 2))
 tank60[#tank60 + 1] = step("Fury", "Raging Blows", 1)
 append(tank60, ranks("Fury", "Enrage", 1, 4))
 
+-- Arms leveling is based on Icy Veins' Nov 3 Warrior leveling guide.
+-- The guide confirms the named milestones but its interactive slider does
+-- not publish every intermediate point as readable text. Those particular
+-- in-between ranks are transparently tagged as inferred. Never confuse an
+-- inferred level order with a verbatim Icy Veins recommendation.
+local armsLeveling = {
+    step("Arms", "Improved Rend", 1, 10),
+    step("Arms", "Improved Rend", 2, 11),
+    step("Arms", "Improved Rend", 3, 12),
+    step("Arms", "Improved Heroic Strike", 1, 13, true),
+    step("Arms", "Improved Heroic Strike", 2, 14, true),
+    step("Arms", "Improved Overpower", 1, 15),
+    step("Arms", "Improved Overpower", 2, 16),
+    step("Arms", "Improved Charge", 1, 17),
+    step("Arms", "Improved Charge", 2, 18),
+    step("Arms", "Improved Tactical Mastery", 1, 19),
+    step("Arms", "Improved Tactical Mastery", 2, 20),
+    step("Arms", "Improved Tactical Mastery", 3, 21),
+    step("Arms", "Anger Management", 1, 22),
+    step("Arms", "Deep Wounds", 1, 23, true),
+    step("Arms", "Deep Wounds", 2, 24, true),
+    step("Arms", "Spearing Strike", 1, 25),
+    step("Arms", "Deep Wounds", 3, 26, true),
+    step("Arms", "Two-Handed Weapon Specialization", 1, 27, true),
+    step("Arms", "Two-Handed Weapon Specialization", 2, 28, true),
+    step("Arms", "Two-Handed Weapon Specialization", 3, 29, true),
+    step("Arms", "Sweeping Strikes", 1, 30),
+    step("Arms", "Bloodthrill", 1, 31),
+    step("Arms", "Bloodthrill", 2, 32),
+    step("Arms", "Weaponmaster", 1, 33),
+    step("Arms", "Weaponmaster", 2, 34),
+    step("Arms", "Improved Slam", 1, 35),
+    step("Arms", "Improved Slam", 2, 36),
+    step("Arms", "Weaponmaster", 3, 37),
+    step("Arms", "Weaponmaster", 4, 38),
+    step("Arms", "Weaponmaster", 5, 39),
+    step("Arms", "Mortal Strike", 1, 40),
+    step("Fury", "Cruelty", 1, 41, true),
+    step("Fury", "Cruelty", 2, 42, true),
+    step("Fury", "Cruelty", 3, 43, true),
+    step("Fury", "Cruelty", 4, 44, true),
+    step("Fury", "Cruelty", 5, 45, true),
+    step("Fury", "Lingering Rage", 1, 46),
+    step("Fury", "Lingering Rage", 2, 47),
+    step("Fury", "Lingering Rage", 3, 48),
+    step("Fury", "Lingering Rage", 4, 49),
+    step("Fury", "Lingering Rage", 5, 50),
+    step("Fury", "Unbridled Wrath", 1, 51, true),
+    step("Fury", "Unbridled Wrath", 2, 52, true),
+    step("Fury", "Unbridled Wrath", 3, 53, true),
+    step("Fury", "Unbridled Wrath", 4, 54, true),
+    step("Fury", "Unbridled Wrath", 5, 55, true),
+    step("Fury", "Reckless Swings", 1, 56),
+    step("Fury", "Improved Execute", 1, 57, true),
+    step("Arms", "Improved Heroic Strike", 3, 58, true),
+    step("Protection", "Improved Bloodrage", 1, 59, true),
+    step("Protection", "Improved Bloodrage", 2, 60, true),
+}
+
+-- Icy Veins Nov 3 final 32/17/2 Mortal Strike PvE build. Exact final ranks;
+-- ordered here into a legal, prerequisite-aware level-60 respec sequence.
+local armsDPS60 = {
+    step("Arms", "Improved Rend", 1),
+    step("Arms", "Improved Rend", 2),
+    step("Arms", "Improved Rend", 3),
+    step("Arms", "Improved Heroic Strike", 1),
+    step("Arms", "Improved Heroic Strike", 2),
+    step("Arms", "Improved Overpower", 1),
+    step("Arms", "Improved Overpower", 2),
+    step("Arms", "Improved Tactical Mastery", 1),
+    step("Arms", "Improved Tactical Mastery", 2),
+    step("Arms", "Improved Tactical Mastery", 3),
+    step("Arms", "Anger Management", 1),
+    step("Arms", "Deep Wounds", 1),
+    step("Arms", "Deep Wounds", 2),
+    step("Arms", "Deep Wounds", 3),
+    step("Arms", "Improved Heroic Strike", 3),
+    step("Arms", "Spearing Strike", 1),
+    step("Arms", "Two-Handed Weapon Specialization", 1),
+    step("Arms", "Two-Handed Weapon Specialization", 2),
+    step("Arms", "Two-Handed Weapon Specialization", 3),
+    step("Arms", "Impale", 1),
+    step("Arms", "Impale", 2),
+    step("Arms", "Sweeping Strikes", 1),
+    step("Arms", "Bloodthrill", 1),
+    step("Arms", "Bloodthrill", 2),
+    step("Arms", "Weaponmaster", 1),
+    step("Arms", "Weaponmaster", 2),
+    step("Arms", "Weaponmaster", 3),
+    step("Arms", "Weaponmaster", 4),
+    step("Arms", "Weaponmaster", 5),
+    step("Arms", "Improved Slam", 1),
+    step("Arms", "Improved Slam", 2),
+    step("Arms", "Mortal Strike", 1),
+    step("Fury", "Cruelty", 1),
+    step("Fury", "Cruelty", 2),
+    step("Fury", "Cruelty", 3),
+    step("Fury", "Cruelty", 4),
+    step("Fury", "Cruelty", 5),
+    step("Fury", "Unbridled Wrath", 1),
+    step("Fury", "Unbridled Wrath", 2),
+    step("Fury", "Unbridled Wrath", 3),
+    step("Fury", "Unbridled Wrath", 4),
+    step("Fury", "Unbridled Wrath", 5),
+    step("Fury", "Enrage", 1),
+    step("Fury", "Enrage", 2),
+    step("Fury", "Enrage", 3),
+    step("Fury", "Enrage", 4),
+    step("Fury", "Enrage", 5),
+    step("Fury", "Reckless Swings", 1),
+    step("Fury", "Improved Execute", 1),
+    step("Protection", "Improved Bloodrage", 1),
+    step("Protection", "Improved Bloodrage", 2),
+}
+
 FTG.Builds.WARRIOR = {
+    arms_leveling = {
+        key = "arms_leveling",
+        name = "Leveling - Arms",
+        shortName = "Arms Leveling",
+        source = "Icy Veins",
+        sourceURL = "https://www.icy-veins.com/wow-forever/arms-warrior-leveling",
+        sourceLastUpdated = "2026-11-03",
+        reviewed = "2026-11-04",
+        coverage = "Levels 10-60",
+        maxLevelCovered = 60,
+        split = "32/17/2 (leveling path)",
+        steps = armsLeveling,
+        note = "Icy Veins-confirmed key milestones. Inferred steps between confirmed levels are marked in the UI.",
+    },
+    arms_dps = {
+        key = "arms_dps",
+        name = "Level 60 DPS - Arms",
+        shortName = "Arms DPS 60",
+        source = "Icy Veins",
+        sourceURL = "https://www.icy-veins.com/wow-forever/arms-warrior-melee-dps-pve-spec-builds-talents",
+        sourceLastUpdated = "2026-11-03",
+        reviewed = "2026-11-04",
+        coverage = "Level 60",
+        requiredLevel = 60,
+        split = "32/17/2",
+        steps = armsDPS60,
+        note = "Exact Icy Veins Mortal Strike two-handed PvE allocation. Ordered for a respec at 60.",
+    },
     leveling = {
         key = "leveling",
         name = "Leveling - Fury",
@@ -136,8 +279,8 @@ FTG.Builds.WARRIOR = {
 }
 
 FTG.BuildMeta = {
-    dataVersion = 1,
+    dataVersion = 2,
     editorialSource = "Icy Veins",
-    reviewed = "2026-11-01",
+    reviewed = "2026-11-04",
     updateCadence = "Tuesday",
 }

@@ -2,7 +2,7 @@
 ## Title: Forever Talent Guide
 ## Notes: Simple Warrior talent guidance for World of Warcraft: Forever. Shows the next recommended Icy Veins talent and highlights it in the talent tree.
 ## Author: Andy + ChatGPT
-## Version: 0.1.3
+## Version: 0.1.4
 ## SavedVariables: ForeverTalentGuideDB
 
 Builds.lua

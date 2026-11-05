@@ -291,7 +291,7 @@ function FTG:GetStatusText()
         lines[#lines + 1] = "Normal level: " .. tostring(step.level)
     end
 
-    if build.key == "leveling" then
+    if build.maxLevelCovered then
         local playerLevel = UnitLevel("player") or 0
         if build.maxLevelCovered and playerLevel >= build.maxLevelCovered and index == #build.steps then
             lines[#lines + 1] = "Current Icy Veins leveling coverage ends at level " .. tostring(build.maxLevelCovered) .. "."
@@ -340,7 +340,10 @@ local function handleSlash(msg)
         return
     end
 
-    if msg == "leveling" or msg == "dps" or msg == "tank" then
+    if msg == "arms" or msg == "armslevel" then msg = "arms_leveling" end
+    if msg == "armsdps" then msg = "arms_dps" end
+    if msg == "leveling" or msg == "dps" or msg == "tank"
+        or msg == "arms_leveling" or msg == "arms_dps" then
         FTG:SetSelectedBuild(msg)
         if FTG.ShowGuide then
             FTG:ShowGuide(true)
@@ -377,7 +380,7 @@ local function handleSlash(msg)
         return
     end
 
-    print("|cffd6a441Forever Talent Guide commands:|r /ftg, /ftg leveling, /ftg dps, /ftg tank, /ftg status, /ftg source, /ftg on, /ftg off")
+    print("|cffd6a441Forever Talent Guide commands:|r /ftg, /ftg leveling, /ftg arms, /ftg dps, /ftg armsdps, /ftg tank, /ftg status, /ftg source, /ftg on, /ftg off")
 end
 
 SLASH_FOREVERTALENTGUIDE1 = "/ftg"

@@ -6,12 +6,14 @@ A small **World of Warcraft: Forever** Warrior addon that answers one question:
 
 The addon shows a compact next-point popup and, when the Blizzard talent window is open, attempts to glow the recommended talent directly in the tree.
 
-## v0.1.3 scope
+## v0.1.4 scope
 
 - Warrior only.
-- Three selectable profiles:
+- Five selectable Warrior profiles:
   - **Leveling - Fury**
+  - **Leveling - Arms** (Icy Veins milestones; inferred intermediate points explicitly marked)
   - **Level 60 DPS - Fury**
+  - **Level 60 DPS - Arms** (Icy Veins 32/17/2 Mortal Strike)
   - **Level 60 Tank - Protection**
 - Icy Veins is the editorial source of truth.
 - Level-up popup only when the client reports an unspent class talent point, including early points from the Forever Talented Legacy perk.
@@ -23,17 +25,19 @@ The addon shows a compact next-point popup and, when the Blizzard talent window 
 - `/ftg` opens the guide.
 - `/ftg leveling`
 - `/ftg dps`
+- `/ftg arms` (Arms leveling)
+- `/ftg armsdps` (Arms level-60 DPS)
 - `/ftg tank`
 - `/ftg status`
 - `/ftg source`
 - `/ftg on`
 - `/ftg off`
 
-## Important pre-launch limitation
+## Guide fidelity and coverage
 
-As of **November 1, 2026**, Icy Veins' Warrior leveling pages still contain the beta-tested talent route only through level 30. This addon intentionally stops there rather than inventing levels 31-60.
+The Fury leveling profile in this initial release still stops at level 30 pending its next guide-data update. The separate Arms leveling profile extends to level 60, built from the Icy Veins Arms leveling page updated November 3, 2026. The site describes the major level-specific milestones but does not expose every intermediate point as static text. Where we inferred a rank order between explicit milestones, the addon marks it as approximate. These inferred steps are **not** a verbatim Icy Veins export.
 
-The level-60 Fury DPS and Protection profiles are already included for respec guidance.
+The Arms level-60 PvE profile uses Icy Veins' exact **32/17/2** Mortal Strike allocation. Its point-spending order is arranged for a level-60 respec, rather than asserted as Icy Veins' leveling progression.
 
 ## Source policy
 
@@ -43,6 +47,10 @@ Build recommendations come from Icy Veins' WoW Forever Warrior guides:
   https://www.icy-veins.com/wow-forever/fury-warrior-melee-dps-pve-guide
 - Fury level-60 PvE talents:
   https://www.icy-veins.com/wow-forever/fury-warrior-melee-dps-pve-spec-builds-talents
+- Arms leveling:
+  https://www.icy-veins.com/wow-forever/arms-warrior-leveling
+- Arms level-60 PvE talents:
+  https://www.icy-veins.com/wow-forever/arms-warrior-melee-dps-pve-spec-builds-talents
 - Protection level-60 PvE talents:
   https://www.icy-veins.com/wow-forever/protection-warrior-tank-pve-spec-builds-talents
 
@@ -52,7 +60,7 @@ The build data lives in `Builds.lua`, separate from addon logic. That means a we
 
 The intended maintenance rule is:
 
-1. Check the three Icy Veins Warrior guide pages every Tuesday.
+1. Check the relevant Icy Veins Warrior guide pages every Tuesday.
 2. Compare their current recommended talents/build split against `Builds.lua`.
 3. If Icy Veins changed the recommendation, update `Builds.lua`.
 4. Bump the addon patch version.

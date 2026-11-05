@@ -49,13 +49,13 @@ end
 local function createSettingsFrame()
     if settingsFrame then return settingsFrame end
     local frame = CreateFrame("Frame", "ForeverTalentGuideSettings", UIParent, "BackdropTemplate")
-    frame:SetSize(370,235); frame:SetPoint("CENTER"); frame:SetFrameStrata("DIALOG"); frame:SetClampedToScreen(true); frame:EnableMouse(true); frame:SetMovable(true)
+    frame:SetSize(370,310); frame:SetPoint("CENTER"); frame:SetFrameStrata("DIALOG"); frame:SetClampedToScreen(true); frame:EnableMouse(true); frame:SetMovable(true)
     frame:RegisterForDrag("LeftButton"); frame:SetScript("OnDragStart", function(self) self:StartMoving() end); frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     if frame.SetBackdrop then frame:SetBackdrop({bgFile="Interface\\DialogFrame\\UI-DialogBox-Background-Dark",edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",tile=true,tileSize=32,edgeSize=24,insets={left=7,right=7,top=7,bottom=7}}) end
     frame.title = frame:CreateFontString(nil,"OVERLAY","GameFontNormalLarge"); frame.title:SetPoint("TOPLEFT",18,-18); frame.title:SetText("Forever Talent Guide")
     frame.subtitle = frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); frame.subtitle:SetPoint("TOPLEFT",frame.title,"BOTTOMLEFT",0,-8); frame.subtitle:SetText("Warrior builds • Icy Veins")
     frame.close = CreateFrame("Button",nil,frame,"UIPanelCloseButton"); frame.close:SetPoint("TOPRIGHT",-4,-4)
-    local options={{key="leveling",label="Leveling",y=-70},{key="dps",label="Level 60 DPS",y=-108},{key="tank",label="Level 60 Tank",y=-146}}
+    local options={{key="leveling",label="Fury Leveling",y=-70},{key="arms_leveling",label="Arms Leveling",y=-110},{key="dps",label="Fury DPS 60",y=-150},{key="arms_dps",label="Arms DPS 60",y=-190},{key="tank",label="Protection Tank 60",y=-230}}
     frame.buttons={}
     for _,option in ipairs(options) do local button=CreateFrame("Button",nil,frame,"UIPanelButtonTemplate"); button:SetSize(150,28); button:SetPoint("TOPLEFT",20,option.y); button:SetText(option.label); button:SetScript("OnClick",function() FTG:SetSelectedBuild(option.key); FTG:ShowGuide(true); FTG:UpdateSettings() end); frame.buttons[option.key]=button end
     frame.info=frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); frame.info:SetPoint("TOPLEFT",190,-72); frame.info:SetPoint("RIGHT",-18,0); frame.info:SetJustifyH("LEFT"); frame.info:SetJustifyV("TOP")
@@ -82,10 +82,12 @@ function FTG:UpdateGuideFrame(step,state,record,reason)
         frame.note:SetText("No unspent talent point yet. Normal first point: level 10.")
     elseif state=="unresolved" then
         frame.note:SetText("Talent not resolved in the current client yet; verification needed.")
-    elseif build.key=="leveling" and build.maxLevelCovered and (UnitLevel("player") or 0)>=build.maxLevelCovered then
+    elseif build.maxLevelCovered and (UnitLevel("player") or 0)>=build.maxLevelCovered then
         frame.note:SetText("Icy Veins currently covers leveling through level "..build.maxLevelCovered..".")
+    elseif step and step.inferred then
+        frame.note:SetText("Approximate point order from Icy Veins' build; verify in their guide.")
     elseif step and step.level then
-        frame.note:SetText("Normal leveling point: level "..step.level)
+        frame.note:SetText("Icy Veins leveling milestone: level "..step.level)
     else
         frame.note:SetText(build.split or "")
     end
