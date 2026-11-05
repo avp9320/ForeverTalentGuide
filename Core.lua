@@ -21,6 +21,7 @@ FTG.runtime = {
     classToken = nil,
     currentStep = nil,
     lastKnownPlayerLevel = nil,
+    lastUnspentPointCount = nil,
 }
 
 local function safeRegisterEvent(frame, event)
@@ -316,6 +317,12 @@ function FTG:RefreshGuide(reason)
     local step, state, _, record = self:GetNextStep()
     self.runtime.currentStep = step
     self.runtime.hasUnspentPoint, self.runtime.pointStatus = self:HasUnspentTalentPoint()
+    -- Keep a currency baseline even when the guide is refreshed manually.
+    -- Unknown currency must not overwrite the last reliable observation.
+    local observed = self:GetUnspentTalentPoints()
+    if observed ~= nil then
+        self.runtime.lastUnspentPointCount = observed
+    end
 
     if self.UpdateGuideFrame then
         self:UpdateGuideFrame(step, state, record, reason)
@@ -434,8 +441,25 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
         or event == "TRAIT_TREE_CURRENCY_INFO_UPDATED"
         or event == "CHARACTER_POINTS_CHANGED"
     then
+        -- Do not undo the player's dismissal on every trait refresh. Those
+        -- events also fire while spending points and opening the talent UI.
+        -- Only a verified increase in unspent currency earns a new popup.
         C_Timer.After(0.10, function()
-            FTG.db.dismissedUntilNextPoint = false
+            if not FTG.db or not FTG.db.enabled then return end
+            local previous = FTG.runtime.lastUnspentPointCount
+            FTG:RefreshTalentCache()
+            local current = FTG:GetUnspentTalentPoints()
+            if current ~= nil then
+                FTG.runtime.lastUnspentPointCount = current
+                if previous ~= nil and current > previous then
+                    FTG.db.dismissedUntilNextPoint = false
+                    FTG:RefreshGuide("new-point")
+                    if FTG.db.showLevelPopup and FTG.ShowGuide then
+                        FTG:ShowGuide(true)
+                    end
+                    return
+                end
+            end
             FTG:RefreshGuide("talent")
         end)
     end
