@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 - 2026-11-05
+
+- Moved the attached guide below the talent tabs and above the trees, away from the Unspent Talents counter.
+- Compressed it into a single 37-unit-high inline row with build, recommended point, and Build selector.
+- Moved the second-line details to a hover tooltip to eliminate clipping and overlap.
+
 ## 0.1.7 - 2026-11-05
 
 - Anchored the guide to the Talent window's empty top band, no floating popup.

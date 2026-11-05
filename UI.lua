@@ -38,29 +38,48 @@ local function makeGuide()
         guide:EnableMouse(true)
         guide:SetFrameLevel(canvas:GetFrameLevel()+10)
         skin(guide)
-        guide.title = guide:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-        guide.title:SetPoint("TOPLEFT",12,-6)
-        guide.title:SetPoint("RIGHT",-86,0)
-        guide.title:SetJustifyH("LEFT")
-        guide.next = guide:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
-        guide.next:SetPoint("TOPLEFT",12,-20)
-        guide.next:SetPoint("RIGHT",-86,0)
-        guide.next:SetJustifyH("LEFT")
-        guide.note = guide:CreateFontString(nil,"OVERLAY","GameFontDisableSmall")
-        guide.note:SetPoint("BOTTOMLEFT",12,5)
-        guide.note:SetPoint("RIGHT",-10,0)
-        guide.note:SetJustifyH("LEFT")
+
         guide.choose = CreateFrame("Button",nil,guide,"UIPanelButtonTemplate")
-        guide.choose:SetSize(72,24)
-        guide.choose:SetPoint("TOPRIGHT",-8,-13)
+        guide.choose:SetSize(70,23)
+        guide.choose:SetPoint("RIGHT",guide,"RIGHT",-8,0)
         guide.choose:SetText("Build")
         guide.choose:SetScript("OnClick",function() FTG:ToggleSettings() end)
+
+        -- One horizontal row: build/source | recommended rank | Build.
+        guide.title = guide:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+        guide.title:SetPoint("LEFT",guide,"LEFT",12,0)
+        guide.title:SetWidth(204)
+        guide.title:SetJustifyH("LEFT")
+        guide.title:SetMaxLines(1)
+
+        guide.next = guide:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
+        guide.next:SetPoint("LEFT",guide.title,"RIGHT",13,0)
+        guide.next:SetPoint("RIGHT",guide.choose,"LEFT",-14,0)
+        guide.next:SetJustifyH("LEFT")
+        guide.next:SetMaxLines(1)
+
+        -- The longer recommendation details are still available on hover.
+        guide.tooltipText = ""
+        guide:SetScript("OnEnter",function(self)
+            if not (GameTooltip and self.tooltipText and self.tooltipText ~= "") then return end
+            GameTooltip:SetOwner(self,"ANCHOR_BOTTOMLEFT")
+            GameTooltip:AddLine("Forever Talent Guide",1,0.78,0.18)
+            GameTooltip:AddLine(self.tooltipText,1,1,1,true)
+            GameTooltip:Show()
+        end)
+        guide:SetScript("OnLeave",function()
+            if GameTooltip then GameTooltip:Hide() end
+        end)
+
         guide:Hide()
     end
-    guide:SetSize(math.max(310,math.min(570,(canvas:GetWidth() or 1200)-260)),52)
     guide:ClearAllPoints()
-    -- Forever's empty header band sits above the three talent trees.
-    guide:SetPoint("TOP",canvas,"TOP",-65,-4)
+    -- The original -4 TOP offset overlapped Primary/Secondary tabs.
+    -- The unobstructed band is immediately below them, before the tree starts.
+    -- The right inset leaves Blizzard's Unspent Talents counter untouched.
+    guide:SetPoint("TOPLEFT",canvas,"TOPLEFT",24,-68)
+    guide:SetPoint("TOPRIGHT",canvas,"TOPRIGHT",-245,-68)
+    guide:SetHeight(37)
     return guide
 end
 
@@ -136,21 +155,24 @@ function FTG:UpdateGuideFrame(step,state,record,reason)
     g.title:SetText(build.name.."  |  Icy Veins")
     if state=="complete" then
         g.next:SetText("Build complete")
-        g.note:SetText("No more guided talent points.")
+        g.tooltipText="All recommended talent points are allocated."
     elseif not step then
         g.next:SetText("No recommendation available")
-        g.note:SetText("Check the selected Icy Veins build.")
+        g.tooltipText="Check the selected Icy Veins build."
     else
         local hasPoint=self.runtime and self.runtime.hasUnspentPoint
         g.next:SetText((hasPoint and "NEXT: " or "UP NEXT: ")..self:GetStepDisplay(step,record))
         if state=="unresolved" then
-            g.note:SetText("Talent not resolved; use /ftg status for details.")
+            g.tooltipText="Talent not resolved in the client; use /ftg status for details."
         elseif step.inferred then
-            g.note:SetText("Approximate order; confirm against Icy Veins.")
+            g.tooltipText="Approximate point order. Confirm this rank against Icy Veins."
         elseif step.level then
-            g.note:SetText("Suggested at level "..tostring(step.level))
+            g.tooltipText="Suggested at level "..tostring(step.level)
         else
-            g.note:SetText(build.split or "")
+            g.tooltipText=build.split or ""
+        end
+        if not hasPoint then
+            g.tooltipText="No unspent talent points. "..g.tooltipText
         end
     end
     g:Show()
