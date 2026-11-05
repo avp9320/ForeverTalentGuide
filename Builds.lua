@@ -30,15 +30,48 @@ local function append(dst, src)
     end
 end
 
--- Icy Veins Fury leveling route currently published through the level-30 beta.
+-- Icy Veins Fury leveling milestones, Nov 3 2026.
+-- Levels explicitly discussed in the Icy Veins article are exact milestones.
+-- All fills between those milestones are flagged inferred, not attributed to
+-- the site's interactive talent slider, whose full values are not public text.
 local leveling = {}
 append(leveling, ranks("Fury", "Cruelty", 1, 5, 10))
 append(leveling, ranks("Fury", "Unbridled Wrath", 1, 5, 15))
 append(leveling, ranks("Fury", "Furious Precision", 1, 3, 20))
-leveling[#leveling + 1] = step("Fury", "Piercing Howl", 1, 23)
-leveling[#leveling + 1] = step("Fury", "Lingering Rage", 1, 24)
+leveling[#leveling + 1] = step("Fury", "Piercing Howl", 1, 23, true)
+leveling[#leveling + 1] = step("Fury", "Lingering Rage", 1, 24, true)
 append(leveling, ranks("Fury", "Dual Wield Specialization", 1, 5, 25))
 leveling[#leveling + 1] = step("Fury", "Death Wish", 1, 30)
+leveling[#leveling + 1] = step("Fury", "Reckless Swings", 1, 31)
+append(leveling, ranks("Fury", "Improved Berserker Rage", 1, 2, 32))
+leveling[#leveling + 1] = step("Fury", "Gore Drinker", 1, 34, true)
+append(leveling, ranks("Fury", "Improved Whirlwind", 1, 2, 35))
+append(leveling, ranks("Fury", "Flurry", 1, 3, 37))
+leveling[#leveling + 1] = step("Fury", "Bloodthirst", 1, 40)
+-- The later Icy Veins article names Improved Tactical Mastery at 50-52,
+-- but not the complete rank order 41-49 or 53-60.
+append(leveling, {
+    step("Arms", "Improved Rend", 1, 41, true),
+    step("Arms", "Improved Rend", 2, 42, true),
+    step("Arms", "Improved Rend", 3, 43, true),
+    step("Arms", "Improved Heroic Strike", 1, 44, true),
+    step("Arms", "Improved Heroic Strike", 2, 45, true),
+    step("Arms", "Improved Overpower", 1, 46, true),
+    step("Arms", "Improved Overpower", 2, 47, true),
+    step("Arms", "Improved Tactical Mastery", 1, 48, true),
+    step("Arms", "Improved Tactical Mastery", 2, 49, true),
+    step("Arms", "Improved Tactical Mastery", 3, 50),
+    step("Arms", "Improved Tactical Mastery", 4, 51),
+    step("Arms", "Improved Tactical Mastery", 5, 52),
+    step("Arms", "Anger Management", 1, 53, true),
+    step("Arms", "Deep Wounds", 1, 54, true),
+    step("Arms", "Deep Wounds", 2, 55, true),
+    step("Arms", "Deep Wounds", 3, 56, true),
+    step("Arms", "Impale", 1, 57, true),
+    step("Arms", "Impale", 2, 58, true),
+    step("Arms", "Improved Heroic Strike", 3, 59, true),
+    step("Arms", "Deflection", 1, 60, true),
+})
 
 -- Level-60 Fury DPS 17/34/0. This is an allocation order for a respec, not a
 -- claim that Icy Veins recommends leveling in this exact order.
@@ -235,16 +268,16 @@ FTG.Builds.WARRIOR = {
     leveling = {
         key = "leveling",
         name = "Leveling - Fury",
-        shortName = "Leveling",
+        shortName = "Fury Leveling",
         source = "Icy Veins",
-        sourceURL = "https://www.icy-veins.com/wow-forever/fury-warrior-melee-dps-pve-guide",
-        sourceLastUpdated = "2026-10-27",
-        reviewed = "2026-11-01",
-        coverage = "Levels 10-30",
-        maxLevelCovered = 30,
-        split = "0/21/0 at level 30",
+        sourceURL = "https://www.icy-veins.com/wow-forever/fury-warrior-leveling",
+        sourceLastUpdated = "2026-11-03",
+        reviewed = "2026-11-04",
+        coverage = "Levels 10-60 (inferred points marked)",
+        maxLevelCovered = 60,
+        split = "20/31/0 (estimated leveling path)",
         steps = leveling,
-        note = "Icy Veins has not yet published the live 31-60 leveling route. Forever Talent Guide will not invent those points.",
+        note = "Icy Veins-confirmed 10-40 and 50-52 milestones; unlisted ranks 23-24, 34, 41-49 and 53-60 are proposed fills, visibly flagged inferred.",
     },
 
     dps = {
