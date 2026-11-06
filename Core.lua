@@ -205,12 +205,10 @@ function FTG:HasUnspentTalentPoint()
     if count ~= nil then
         return count > 0, source
     end
-    -- Compatibility-only fallback: the classic baseline awards one point
-    -- per level starting at 10. Never pop before 10 without actual currency.
-    -- This does not claim to identify unspent points after level 10.
-    local level = tonumber(self.runtime.lastKnownPlayerLevel)
-        or (UnitLevel and UnitLevel("player")) or 0
-    return level >= 10, "level-estimate"
+    -- An unavailable currency API is not evidence of an unspent point.
+    -- Do not repeatedly pop the guide for every level-10+ character on
+    -- zone changes or reloads. The talent-window strip remains accessible.
+    return false, source or "unspent-unknown"
 end
 
 function FTG:GetTalentRecord(talentName)
